@@ -1,4 +1,6 @@
-const formatResponse = (
+import { ValidationError } from "class-validator";
+
+const successformatResponse = (
   statusCode: number,
   success: boolean,
   data?: unknown
@@ -7,6 +9,7 @@ const formatResponse = (
     statusCode,
     headers: {
       "Access-Control-Allow-Origin": "*",
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       success,
@@ -15,26 +18,42 @@ const formatResponse = (
   };
 };
 
+const errorformatResponse = (
+  statusCode: number,
+  success: boolean,
+  error: unknown
+) => {
+  return {
+    statusCode,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      success,
+      error,
+    }),
+  };
+};
+
 export const SuccessResponse = (data: object, code: number = 200) => {
-  return formatResponse(code, true, data);
+  return successformatResponse(code, true, data);
 };
 
 export const ErrorResponse = (code = 500, error: unknown) => {
   let errorMessage;
 
-  if (Array.isArray(error)) {
-    const errorMessages = error.map((err) => {
-      const constraints = err.constraints || {};
-      return Object.values(constraints)[0] || "Error Occurred";
-    });
-
-    errorMessage = errorMessages.join(", ");
-  } else if (typeof error === "object" && error !== null) {
-    const constraints = (error as any).constraints || {};
-    errorMessage = Object.values(constraints)[0] || "Error Occurred";
-  } else if (typeof error === "string") {
-    errorMessage = error;
+  if (error instanceof Error) {
+    errorMessage = [error.message];
+  } else {
+    errorMessage = [error];
   }
 
-  return formatResponse(code, false, errorMessage);
+  return errorformatResponse(code, false, errorMessage);
+};
+
+export const AppValidationResponse = (error: ValidationError[], code = 400) => {
+  const data = Object.values(error[0].constraints).map((value) => value);
+
+  return errorformatResponse(code, false, data);
 };

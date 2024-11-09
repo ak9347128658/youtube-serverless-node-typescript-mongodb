@@ -1,5 +1,5 @@
 import { APIGatewayProxyEventV2 } from "aws-lambda";
-import { ErrorResponse, SuccessResponse } from "../utils/reponse";
+import { ErrorResponse } from "../utils/reponse";
 import { container } from "tsyringe";
 import TodoService from "../services/todo.service";
 
@@ -11,13 +11,13 @@ export const todoHandler = async (event: APIGatewayProxyEventV2) => {
 
     switch (httpMethod) {
       case "get":
-        return SuccessResponse(await todoService.getTodos(event));
+        return await todoService.getTodos(event);
       case "post":
-        return SuccessResponse(await todoService.createTodo(event), 201);
+        return await todoService.createTodo(event);
       case "patch":
-        return SuccessResponse(await todoService.updateTodo(event), 200);
+        return await todoService.updateTodo(event);
       case "delete":
-        return SuccessResponse(await todoService.deleteTodoById(event), 204);
+        return await todoService.deleteTodoById(event);
       default:
         return ErrorResponse(400, "Invalid HTTP Method");
     }

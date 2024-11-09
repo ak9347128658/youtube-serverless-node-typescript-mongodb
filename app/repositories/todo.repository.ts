@@ -25,8 +25,12 @@ class TodoRepository {
     return await this.model.findByIdAndUpdate(id, update, { new: true });
   }
 
-  public async delete(id: string): Promise<ITodoDocument | null> {
-    return await this.model.findByIdAndDelete(id);
+  public async delete(id: string): Promise<Object> {
+    const data = await this.model.findByIdAndDelete(id);
+    return {
+      message: "Deleted successfully",
+      id: id,
+    };
   }
 
   public async getById(id: string): Promise<ITodoDocument | null> {

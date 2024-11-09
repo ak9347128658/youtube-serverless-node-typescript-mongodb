@@ -4,6 +4,7 @@ import { autoInjectable, inject } from "tsyringe";
 import { TodoValidator } from "../models/todo.model";
 import TodoRepository from "../repositories/todo.repository";
 import { AppValidationError } from "../utils/errors";
+import { SuccessResponse, AppValidationResponse } from "app/utils/reponse";
 
 @autoInjectable()
 class TodoService {
@@ -17,40 +18,40 @@ class TodoService {
     const input = plainToClass(TodoValidator, JSON.parse(event.body));
 
     const error = await AppValidationError(input);
-    if (error) return error;
-    return await this.todoRepository.create(input);
+    if (error) return AppValidationResponse(error);
+    return SuccessResponse(await this.todoRepository.create(input), 201);
   }
 
   public async getTodos(event: APIGatewayProxyEventV2) {
     const id = event.pathParameters?.id;
     if (id) {
-      return [await this.todoRepository.getById(id)];
+      return SuccessResponse([await this.todoRepository.getById(id)]);
     }
-    return await this.todoRepository.read();
+    return SuccessResponse(await this.todoRepository.read());
   }
 
   public async updateTodo(event: APIGatewayProxyEventV2) {
     const id = event.pathParameters?.id; // query event.queryStringParameters?.id
     const input = plainToClass(TodoValidator, JSON.parse(event.body!));
     const error = await AppValidationError(input);
-    if (error) return error;
-    return await this.todoRepository.update(id, input);
+    if (error) return AppValidationResponse(error);
+    return SuccessResponse(await this.todoRepository.update(id, input));
   }
 
   public async deleteTodoById(event: APIGatewayProxyEventV2) {
     const id = event.pathParameters?.id;
     if (!id) throw new Error("ID is required");
-    return await this.todoRepository.delete(id);
+    return SuccessResponse(await this.todoRepository.delete(id), 200);
   }
 
   public async getTodoById(event: APIGatewayProxyEventV2) {
     const id = event.pathParameters?.id;
     if (!id) throw new Error("ID is required");
-    return await this.todoRepository.getById(id);
+    return SuccessResponse(await this.todoRepository.getById(id), 200);
   }
 
   public async deleteAllTodos() {
-    return await this.todoRepository.deleteAll();
+    return SuccessResponse(await this.todoRepository.deleteAll(), 204);
   }
 }
 
